@@ -5,16 +5,19 @@ Luca Iocchi, Sapienza University of Rome, Italy (2021)
 
 ----
 
-Plan Execution Interface (PLEXI) is a layer for increasing interoperability between a plan exeuction monitor (PEM) and the implementation of actions and fluents (or conditions) in a complex system (e.g., a robotic application). PLEXI provides an interaction protocol between PEM and actions/fluents implementations, allowing for decoupling all these components. 
+A Plan Execution Monitor (PEM) aims at orchestrating the execution of actions and monitor the values of fluents (or predicates), following a plan generated to achieve a given goal.
+The implementation of the interface between a PEM and action/fluent implementations may be non-trivial and it is usually achieved through specific coupling PEM and action/fluent implementations.
+Existing examples are ROSPlan Action and Sensing interfaces (https://kcl-planning.github.io/ROSPlan/documentation/) and PetriNetPlans ActionServers (https://github.com/iocchi/PetriNetPlans/tree/master/PNPros/ROS_bridge/pnp_ros).
+
+Plan Execution Interface (PLEXI) is a layer for increasing interoperability between a PEM and the implementation of actions and fluents in a complex system (e.g., a robotic application). PLEXI provides an interaction protocol between PEM and action/fluent implementations, allowing for decoupling all these components. 
+
+With PLEXI, action/fluent implementations will not depend on the specific PEM. There is no need to import libraries or include code from the PEM, there is no need to know which PEM will orchestrate the implemented actions/fluents.
 
 Implementations of PLEXI are provided for both ROS (Python and C++) and gRPC (Python and C++) -- (*ongoing work...*)
 
-With PLEXI, action/fluent implementations will not depend from the specific PEM. There is no need to import libraries or include code from the PEM,
-there is no need to know with PEM will orchestrate the actions/fluents.
-
-Interaction between PEM and actions/fluents will exploit the FLEXI protocol using ROS and gRPC communication channels.
+Interaction between PEM and actions/fluents will use the FLEXI protocol over ROS and gRPC communication channels.
 ROS/gRPC Python/C++ implementations can be mixed in the same application. 
-All implemented actions/fluents, each one using its own language (Python/C++) and communication channel (ROS/gRPC), will be managed by the same PEM.
+All implemented actions/fluents, each one using its own language (Python/C++) and communication layer (ROS/gRPC), will be managed by the same PEM.
 
 
 ## PLEXI protocol specification
@@ -23,9 +26,7 @@ PLEXI protocol is based on string messages with the following semantics:
 
 ----
 
-Message specifications
-
-Action interface
+### Action messages
 
 From PEM to PLEXI
 
@@ -33,11 +34,11 @@ From PEM to PLEXI
 * interrupt
 * resume
 
-Form PLEXI to PEM
+From PLEXI to PEM
 
-* end
+* end (with success/failure state)
 
-Fluent interface
+### Fluent messages
 
 From PEM to PLEXI
 
@@ -48,12 +49,15 @@ From PLEXI to PEM
 * value (with timestamp of last obesrvation)
 
 
-## PLEXI integration in actions/fluents implementation
+## PLEXI wrappers for action/fluent implementation
 
 To add PLEXI interface to an action/fluent implementation:
 
-* copy the actionproxy/fluentproxy base classes from this repository in your application
+* copy the actionproxy/fluentproxy base classes from this repository to the action/fluent implementation
 * define a specific class (see the templates as examples)
 * run the specific class
 
 The specific class will act as a wrapper/proxy to the code implementing the action/fluent enabling it to be controlled by a FLEXI-enabled PEM.
+
+_Note_: for each action/fluent, a process will be running and communicate with the PEM to implement the plan execution.
+
