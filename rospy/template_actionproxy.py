@@ -2,6 +2,9 @@
 
 import sys
 
+import rospy
+
+#sys.path.append("....")                # <--- rospy PLEXI folder
 from actionproxy import ActionProxy
 
 ACTION_NAME = 'template'                # <--- action name
@@ -15,6 +18,15 @@ class TemplateActionProxy(ActionProxy): # <--- action class
     def __del__(self):
         ActionProxy.__del__(self)
                                         # <--- action del
+
+
+    #def interrupt(self):
+    #    ActionProxy.end(self)
+                                        # <--- action interrupt (default behavior: end)
+
+    #def resume(self):
+    #    ActionProxy.resume(self)
+                                        # <--- action resume (default behavior: start with same params)
 
 
     def action_thread(self, params):

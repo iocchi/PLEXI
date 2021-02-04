@@ -17,7 +17,7 @@ Action executors should listen to this message and execute the corresponding act
 
 Test with CLI
 
-    rostopic pub pnp/action_str std_msgs/String "data:'wait_10.start'"
+    rostopic pub pnp/action_str std_msgs/String "data: 'wait_10.start'" --once
 
 Quit all action proxies with
 
@@ -40,6 +40,8 @@ class ActionProxy:
         self.do_run = False
         self.athread = None
         self.actionname = actionname
+        self.params = None
+        self.interrupted = False
 
         # init ROS node
         nodename = actionname+"_actionproxy"
@@ -58,6 +60,8 @@ class ActionProxy:
 
     def actionproxy_cb(self, data):
         sdata = data.data
+        #print(sdata)
+
         if ('%quit_server' in sdata):
             self.quit_server()
             return
@@ -82,13 +86,16 @@ class ActionProxy:
             params = v[0][k+1:]
 
         if action==self.actionname:
-            print("robot: %s action: %s params: %s command: %s" \
-                %(robot, action, params, command))
+            #print("robot: %s action: %s params: %s command: %s" \
+            #    %(robot, action, params, command))
             if command=='start':
                 self.start(params)
 
             elif command=='interrupt':
                 self.interrupt()
+
+            elif command=='resume':
+                self.resume()
 
             elif command=='end':
                 self.end()
@@ -101,21 +108,32 @@ class ActionProxy:
     def start(self, params=None):
         if self.athread != None:
             self.end()
+        self.params = params
+        print("ActionProxy %s - start %s" %(self.actionname,self.params))
+        self.interrupted = False
         self.do_run = True
         self.athread = Thread(target=self.action_thread, args=(params,))
         self.athread.start()
 
     def interrupt(self):
+        print("ActionProxy %s - interrupt" %(self.actionname))
         self.end()
+        self.interrupted = True
+
+    def resume(self):
+        print("ActionProxy %s - resume" %(self.actionname))
+        self.start(self.params)
 
     def end(self):
+        print("ActionProxy %s - end" %(self.actionname))
         self.do_run = False
         if self.athread != None:
             self.athread.join()
         self.athread = None
 
     def isRunning(self):
-        self.do_run = self.athread != None and self.athread.is_alive()
+        if self.athread != None and not self.athread.is_alive():
+            self.do_run = False
         return self.do_run
 
     # exec the action / blocking, CTRL-C to interrupt
@@ -125,7 +143,8 @@ class ActionProxy:
             try:
                 rospy.sleep(1)
             except KeyboardInterrupt:
-                self.interrupt()
+                print("ActionProxy %s - user interrupt" %(self.actionname))
+                self.end()
         self.end()
 
     def run_server(self):   # keep the server running -> actions managed by actionproxy_cb
@@ -138,7 +157,7 @@ class ActionProxy:
                 rate.sleep()
             except KeyboardInterrupt:
                 print("ActionProxy %s - user interrupt" %(self.actionname))
-                server_run = False
+                self.server_run = False
 
         print("ActionProxy %s quit" %(self.actionname))
 

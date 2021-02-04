@@ -2,9 +2,12 @@
 
 import sys
 
-from FluentProxy import FluentProxy
+import rospy
 
-FLUENT_NAME = 'template'    # <--- fluent name
+#sys.path.append("....")                  # <--- rospy PLEXI folder
+from fluentproxy import FluentProxy
+
+FLUENT_NAME = 'template'                  # <--- fluent name
 
 class TemplateFluentProxy(FluentProxy):   # <--- fluent class
 
@@ -23,6 +26,9 @@ class TemplateFluentProxy(FluentProxy):   # <--- fluent class
 
         while self.do_run:
                                                 # <--- fluent loop
+
+            self.setValue(value)            # <--- sent fluent value       
+                                            # 1: true,  0: false,  -1: unknown
             rospy.sleep(0.25)
 
                                                 # <--- fluent end
