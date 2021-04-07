@@ -41,17 +41,18 @@ PARAM_PNPCONDITIONBUFFER = "pnp/conditionsBuffer/"
 
 class FluentProxy:
 
-    def __init__(self, fluentname):
+    def __init__(self, fluentname, rosnode=True):
 
         self.fluentname = fluentname
         self.timestamp = None   # time of current value
         self.value = None       # current value
         self.cthread = None
-        self.param = PARAM_PNPCONDITIONBUFFER + fluentname
+        self.rosparam = PARAM_PNPCONDITIONBUFFER + fluentname
 
-        # init ROS node
-        nodename = fluentname+"_FluentProxy"
-        rospy.init_node(nodename,  disable_signals=True)
+        if rosnode:
+            # init ROS node
+            nodename = fluentname+"_fluentproxy"
+            rospy.init_node(nodename,  disable_signals=True)
 
         # subscribers
         self.actionproxy_sub = rospy.Subscriber(TOPIC_PNPACTIONPROXY_STR, String, self.actionproxy_cb)  # only to check quit signal
@@ -83,17 +84,24 @@ class FluentProxy:
         self.end()
 
     def isRunning(self):
-        self.do_run = self.cthread != None and self.cthread.is_alive()
+        if self.cthread != None and not self.cthread.is_alive():
+            self.do_run = False
         return self.do_run
 
-    def setValue(self, value):  # 1: true,  0: false,  -1: unknown
+    def setValue(self, value, params=None):  # 1: true,  0: false,  -1: unknown
         self.lasttime = rospy.Time.now()
-        rospy.set_param(self.param, value)
+        if params == None or params == '':
+            rospy.set_param(self.rosparam, value)
+        else:
+            rospy.set_param(self.rosparam+"_"+params, value)
 
-    def getValue(self):
+    def getValue(self, params=None):
         v = -1
         try:
-            v = rospy.get_param(self.param)
+            if params == None or params == '':
+                v = rospy.get_param(self.rosparam)
+            else:
+                v = rospy.get_param(self.rosparam+"_"+params)
         except:
             pass
         return v

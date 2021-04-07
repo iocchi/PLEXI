@@ -33,6 +33,8 @@ TOPIC_PNPACTIONPROXY_STR = "pnp/action_str"
 # topic for publishers
 TOPIC_PNPACTIONCMD = "pnp/actionCmd"
 
+# param to notify action end
+PARAM_PNPACTIONSTATUS = "pnp/actionStatus/"
 
 class ActionProxy:
 
@@ -127,6 +129,9 @@ class ActionProxy:
     def end(self):
         print("ActionProxy %s - end" %(self.actionname))
         self.do_run = False
+        #data = "%s_%s.end" %(self.actionname,self.params)
+        #self.actioncmd_pub.publish(data)
+        rospy.set_param(PARAM_PNPACTIONSTATUS+self.actionname, "end")
         if self.athread != None:
             self.athread.join()
         self.athread = None
@@ -153,6 +158,13 @@ class ActionProxy:
         rate = rospy.Rate(1)
         self.server_run = True
         while not rospy.is_shutdown() and self.server_run:
+            # idle
+
+            if self.athread != None and not self.athread.is_alive():
+                if self.do_run: # if action is running, send end signal
+                    self.end()
+                self.do_run = False
+
             try:
                 rate.sleep()
             except KeyboardInterrupt:
