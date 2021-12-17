@@ -7,7 +7,7 @@ Luca Iocchi, Sapienza University of Rome, Italy (2021)
 
 A Plan Execution Monitor (PEM) aims at orchestrating the execution of actions and monitor the values of fluents (or predicates), following a plan generated to achieve a given goal.
 The implementation of the interface between a PEM and action/fluent implementations may be non-trivial and it is usually achieved through specific coupling PEM and action/fluent implementations.
-Existing examples are ROSPlan Action and Sensing interfaces (https://kcl-planning.github.io/ROSPlan/documentation/) and PetriNetPlans ActionServers (https://github.com/iocchi/PetriNetPlans/tree/master/PNPros/ROS_bridge/pnp_ros).
+Existing examples are ROSPlan Action and Sensing interfaces https://kcl-planning.github.io/ROSPlan/documentation/ and PetriNetPlans ActionServers https://github.com/iocchi/PetriNetPlans/tree/master/PNPros/ROS_bridge/pnp_ros.
 
 Plan Execution Interface (PLEXI) is a layer for increasing interoperability between a PEM and the implementation of actions and fluents in a complex system (e.g., a robotic application). PLEXI provides an interaction protocol between PEM and action/fluent implementations, allowing for decoupling all these components. 
 
@@ -61,4 +61,4 @@ The proxies will operate as interfaces between the PEM and the action/fluent spe
 A process will be running for each proxy to communicate with the PEM and implement actual plan execution.
 
 
-A full example of use of this interface can be found in (https://github.com/iocchi/DIAG_demo).
+A full example of use of this interface can be found in https://github.com/iocchi/DIAG_demo.
