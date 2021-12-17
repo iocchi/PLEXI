@@ -54,10 +54,11 @@ From PLEXI to PEM
 To add PLEXI interface to an action/fluent implementation:
 
 * copy the actionproxy/fluentproxy base classes from this repository to the action/fluent implementation
-* define a specific class (see the templates as examples)
-* run the specific class
+* define a specific proxy for each action/fluent (see the templates as examples)
+* start all the acion/fluent proxies
 
-The specific class will act as a wrapper/proxy to the code implementing the action/fluent enabling it to be controlled by a FLEXI-enabled PEM.
+The proxies will operate as interfaces between the PEM and the action/fluent specific code.
+A process will be running for each proxy to communicate with the PEM and implement actual plan execution.
 
-_Note_: for each action/fluent, a process will be running and communicate with the PEM to implement the plan execution.
 
+A full example of use of this interface can be found in (https://github.com/iocchi/DIAG_demo).
