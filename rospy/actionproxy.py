@@ -174,7 +174,12 @@ class ActionProxy:
         print("ActionProxy %s quit" %(self.actionname))
 
     def quit_server(self):
+        self.quit_notify()
         self.server_run = False
+
+    # class-specific quit
+    def quit_notify(self):
+        pass
 
 
     # to be defined by specific ActionProxy class

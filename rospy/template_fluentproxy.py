@@ -11,8 +11,8 @@ FLUENT_NAME = 'template'                  # <--- fluent name
 
 class TemplateFluentProxy(FluentProxy):   # <--- fluent class
 
-    def __init__(self, fluentnane):
-        FluentProxy.__init__(self, fluentnane)
+    def __init__(self, fluentnane, rosnode=True):
+        FluentProxy.__init__(self, fluentnane, rosnode)
                                           # <--- fluent init
 
 

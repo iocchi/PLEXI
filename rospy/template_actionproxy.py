@@ -30,7 +30,7 @@ class TemplateActionProxy(ActionProxy): # <--- action class
 
 
     def action_thread(self, params):
-                                        # <--- action params
+        v = params.split('_')           # <--- action params
 
         while self.do_run:
                                         # <--- action loop
@@ -45,7 +45,7 @@ if __name__ == "__main__":
     if (len(sys.argv)>1):
         params = sys.argv[1]
 
-    a = TemplateActionProxy(ACTION_NAME)
+    a = TemplateActionProxy(ACTION_NAME)    # <--- action class
     
     if params is not None:
         a.execute(params)  # blocking, CTRL-C to interrupt
