@@ -38,10 +38,12 @@ PARAM_PNPACTIONSTATUS = "pnp/actionStatus/"
 
 class ActionProxy:
 
-    def __init__(self, actionname):
+    def __init__(self, actionname, actionnamealiases=[]):
         self.do_run = False
         self.athread = None
         self.actionname = actionname
+        self.actionnamealiases = actionnamealiases
+        self.currentactionname = None  # in case of action name aliases the current name in use
         self.params = None
         self.interrupted = False
 
@@ -49,10 +51,10 @@ class ActionProxy:
         nodename = actionname+"_actionproxy"
         rospy.init_node(nodename,  disable_signals=True)
 
-        # subscribers
+        # subscriber
         self.actionproxy_sub = rospy.Subscriber(TOPIC_PNPACTIONPROXY_STR, String, self.actionproxy_cb)
 
-        # publishers
+        # publisher
         self.actioncmd_pub = rospy.Publisher(TOPIC_PNPACTIONCMD, String, queue_size=1)
 
 
@@ -87,9 +89,10 @@ class ActionProxy:
             action = v[0][0:k]
             params = v[0][k+1:]
 
-        if action==self.actionname:
+        if action==self.actionname or action in self.actionnamealiases:
             #print("robot: %s action: %s params: %s command: %s" \
             #    %(robot, action, params, command))
+            self.currentactionname = action
             if command=='start':
                 self.start(params)
 
@@ -111,30 +114,33 @@ class ActionProxy:
         if self.athread != None:
             self.end()
         self.params = params
-        print("ActionProxy %s - start %s" %(self.actionname,self.params))
+        print("ActionProxy %s - start %s" %(self.currentactionname,self.params))
         self.interrupted = False
         self.do_run = True
+        rospy.set_param(PARAM_PNPACTIONSTATUS+self.currentactionname, "run")
         self.athread = Thread(target=self.action_thread, args=(params,))
         self.athread.start()
 
     def interrupt(self):
-        print("ActionProxy %s - interrupt" %(self.actionname))
-        self.end()
+        print("ActionProxy %s - interrupt" %(self.currentactionname))
         self.interrupted = True
+        rospy.set_param(PARAM_PNPACTIONSTATUS+self.currentactionname, "interrupt")
 
     def resume(self):
-        print("ActionProxy %s - resume" %(self.actionname))
-        self.start(self.params)
+        print("ActionProxy %s - resume" %(self.currentactionname))
+        self.interrupted = False
+        rospy.set_param(PARAM_PNPACTIONSTATUS+self.currentactionname, "run")
 
     def end(self):
-        print("ActionProxy %s - end" %(self.actionname))
+        print("ActionProxy %s - end" %(self.currentactionname))
         self.do_run = False
         #data = "%s_%s.end" %(self.actionname,self.params)
         #self.actioncmd_pub.publish(data)
-        rospy.set_param(PARAM_PNPACTIONSTATUS+self.actionname, "end")
+        rospy.set_param(PARAM_PNPACTIONSTATUS+self.currentactionname, "end")
         if self.athread != None:
             self.athread.join()
         self.athread = None
+        self.currentactionname = None
 
     def isRunning(self):
         if self.athread != None and not self.athread.is_alive():
@@ -148,7 +154,7 @@ class ActionProxy:
             try:
                 rospy.sleep(1)
             except KeyboardInterrupt:
-                print("ActionProxy %s - user interrupt" %(self.actionname))
+                print("ActionProxy %s - user interrupt" %(self.currentactionname))
                 self.end()
         self.end()
 
@@ -173,9 +179,11 @@ class ActionProxy:
 
         print("ActionProxy %s quit" %(self.actionname))
 
+
     def quit_server(self):
         self.quit_notify()
         self.server_run = False
+
 
     # class-specific quit
     def quit_notify(self):
